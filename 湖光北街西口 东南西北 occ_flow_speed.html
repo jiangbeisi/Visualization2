@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>湖光北街西口交通流数据</title>
+        <script src="../echarts.min.js"></script>
+        <script type = "text/javascript" src="../jquery-2.2.2.js"></script>
+    </head>
+    <body style="width: 100%; height: 100%; overflow: hidden; margin: 0">
+        <div id="title" style="width: 100%; background-color: #FFEBCD; font-size: 16px">
+            北京市湖光北街西口交通流量可视化
+        </div>
+        <!-- 为ECharts准备一个具备大小（宽高）的Dom -->
+        <div id="main" style="width: 100%; height: 900px"></div>
+        <script type="text/javascript">
+            // eCharts实例
+            var myChart = echarts.init(document.getElementById('main'));
+
+            // 全局变量
+            var app = {};
+
+            /* time0 & time1 */
+            var time0 = [];
+            time0[0] = [];  time0[1] = [];  time0[2] = [];  time0[3] = []; // time0存放初始值 --- 东、南、西、北
+            var time1 = [];
+            time1[0] = [];  time1[1] = [];  time1[2] = [];  time1[3] = []; // time1存放更新值 --- 东、南、西、北
+            /* occ0 & occ1 */
+            var occ0 = [];
+            occ0[0] = [];   occ0[1] = [];   occ0[2] = [];  occ0[3] = []; // occ0存放初始值 --- 东、南、西、北
+            var occ1 = [];
+            occ1[0] = [];   occ1[1] = [];   occ1[2] = [];  occ1[3] = []; // occ1存放更新值 --- 东、南、西、北
+            /* flow0 & flow1 */
+            var flow0 = [];
+            flow0[0] = [];  flow0[1] = [];  flow0[2] = [];  flow0[3] = []; // flow0存放初始值 --- 东、南、西、北
+            var flow1 = [];
+            flow1[0] = [];  flow1[1] = [];  flow1[2] = [];  flow1[3] = []; // flow1存放更新值 --- 东、南、西、北
+            /* speed0 & speed1 */ 
+            var speed0 = [];
+            speed0[0] = []; speed0[1] = []; speed0[2] = [];  speed0[3] = []; // speed0存放初始值 --- 东、南、西、北
+            var speed1 = [];
+            speed1[0] = []; speed1[1] = []; speed1[2] = [];  speed1[3] = []; // speed1存放更新值 --- 东、南、西、北
+        
+            // 异步加载数据后调用init_and_update()方法
+            var init_and_update = function() {
+               
+                var option = {
+                    backgroundColor: 'rgba(0, 0, 0, 1)',                
+                    legend: {
+                        data: ['Occ', 'Speed', 'Flow'],
+                        x: 'center',
+                        y: '2%',
+                        textStyle: {
+                            color: '#ccc'
+                        },
+                    },
+                    tooltip : {
+                        trigger: 'axis',
+                        axisPointer: {
+                            animation: false
+                        }
+                    },
+                    grid: [
+                        {x: '6%', y: '14%', width: '38.5%', height: '30%'}, // 东图位置
+                        {x2: '6%', y: '14%', width: '38.5%', height: '30%'}, // 南图位置
+                        {x: '6%', y2: '13%', width: '38.5%', height: '30%'}, // 西图位置
+                        {x2: '6%', y2: '13%', width: '38.5%', height: '30%'} // 北图位置
+                    ],
+                    xAxis: [
+                        { // 东图: X轴
+                            gridIndex: 0, 
+                            boundaryGap: false,
+                            type: 'category', 
+                            splitLine: {
+                                show: false
+                            },
+                            axisLine: {
+                                lineStyle: {
+                                    color: 'rgba(220, 220, 220, 0.5)'
+                                }
+                            },
+                            axisLabel: {
+                                textStyle: {
+                                    color: 'rgba(220, 220, 220, 0.7)'
+                                }
+                            },
+                            data: time0[0].map( function (str) { return str.replace(' ', '\n'); } )
+                        },
+                        { // 南图: X轴
+                            gridIndex: 1,
+                            boundaryGap: false,
+                            type: 'category',  
+                            splitLine: {
+                                show: false
+                            },
+                            axisLine: {
+                                lineStyle: {
+                                    color: 'rgba(220, 220, 220, 0.5)'
+                                }
+                            },
+                            axisLabel: {
+                                textStyle: {
+                                    color: 'rgba(220, 220, 220, 0.7)'
+                                }
+                            },
+                            data: time0[1].map( function (str) { return str.replace(' ', '\n'); } )  
+                        },
+                        { // 西图: X轴
+                            gridIndex: 2,
+                            boundaryGap: false,
+                            type: 'category',  
+                            splitLine: {
+                                show: false
+                            },
+                            axisLine: {
+                                lineStyle: {
+                                    color: 'rgba(220, 220, 220, 0.5)'
+                                }
+                            },
+                            axisLabel: {
+                                textStyle: {
+                                    color: 'rgba(220, 220, 220, 0.7)'
+                                }
+                            },
+                            data: time0[2].map( function (str) { return str.replace(' ', '\n'); } )  
+                        },
+                        { // 北图: X轴
+                            gridIndex: 3,
+                            boundaryGap: false,
+                            type: 'category',  
+                            splitLine: {
+                                show: false
+                            },
+                            axisLine: {
+                                lineStyle: {
+                                    color: 'rgba(220, 220, 220, 0.5)'
+                                }
+                            },
+                            axisLabel: {
+                                textStyle: {
+                                    color: 'rgba(220, 220, 220, 0.7)'
+                                }
+                            },
+                            data: time0[3].map( function (str) { return str.replace(' ', '\n'); } )  
+                        }
+                    ],
+                    yAxis: [
+                     // 东图: 2个Y轴
+                        {
+                            gridIndex: 0, 
+                            type: 'value', 
+                            splitLine: {
+                                show: false
+                            },
+                            axisLine: {
+                                lineStyle: {
+                                    color: 'rgba(220, 220, 220, 0.5)'
+                                }
+                            },
+                            axisLabel: {
+                                textStyle: {
+                                    color: 'rgba(220, 220, 220, 0.7)'
+                                }
+                            }, 
+                            name: 'Occ(%)/Speed', 
+                            min: 0, 
+                            max: 100
+                        },
+                        {
+                            gridIndex: 0, 
+                            type: 'value', 
+                            splitLine: {
+                                show: false
+                            },
+                            axisLine: {
+                                lineStyle: {
+                                    color: 'rgba(220, 220, 220, 0.5)'
+                                }
+                            }, 
+                            axisLabel: {
+                                textStyle: {
+                                    color: 'rgba(220, 220, 220, 0.7)'
+                                }
+                            },
+                            name: 'Flow', 
+                            min: 0, 
+                            max: 700
+                        },
+                    // 南图: 2个Y轴
+                        {
+                            gridIndex: 1, 
+                            type: 'value', 
+                            splitLine: {
+                                show: false
+                            },
+                            axisLine: {
+                                lineStyle: {
+                                    color: 'rgba(220, 220, 220, 0.5)'
+                                }
+                            },
+                            axisLabel: {
+                                textStyle: {
+                                    color: 'rgba(220, 220, 220, 0.7)'
+                                }
+                            }, 
+                            name: 'Occ(%)/Speed', 
+                            min: 0, 
+                            max: 100
+                        },
+                        {
+                            gridIndex: 1, 
+                            type: 'value', 
+                            splitLine: {
+                                show: false
+                            },
+                            axisLine: {
+                                lineStyle: {
+                                    color: 'rgba(220, 220, 220, 0.5)'
+                                }
+                            },
+                            axisLabel: {
+                                textStyle: {
+                                    color: 'rgba(220, 220, 220, 0.7)'
+                                }
+                            }, 
+                            name: 'Flow', 
+                            min: 0, 
+                            max: 707
+                        },
+                    // 西图: 2个Y轴
+                        {
+                            gridIndex: 2, 
+                            type: 'value', 
+                            splitLine: {
+                                show: false
+                            },
+                            axisLine: {
+                                lineStyle: {
+                                    color: 'rgba(220, 220, 220, 0.5)'
+                                }
+                            },
+                            axisLabel: {
+                                textStyle: {
+                                    color: 'rgba(220, 220, 220, 0.7)'
+                                }
+                            }, 
+                            name: 'Occ(%)/Speed', 
+                            min: 0, 
+                            max: 100
+                        },
+                        {
+                            gridIndex: 2, 
+                            type: 'value', 
+                            splitLine: {
+                                show: false
+                            },
+                            axisLine: {
+                                lineStyle: {
+                                    color: 'rgba(220, 220, 220, 0.5)'
+                                }
+                            },
+                            axisLabel: {
+                                textStyle: {
+                                    color: 'rgba(220, 220, 220, 0.7)'
+                                }
+                            }, 
+                            name: 'Flow', 
+                            min: 0, 
+                            max: 700
+                        },
+                        // 北图: 2个Y轴
+                        {
+                            gridIndex: 3, 
+                            type: 'value', 
+                            splitLine: {
+                                show: false
+                            },
+                            axisLine: {
+                                lineStyle: {
+                                    color: 'rgba(220, 220, 220, 0.5)'
+                                }
+                            },
+                            axisLabel: {
+                                textStyle: {
+                                    color: 'rgba(220, 220, 220, 0.7)'
+                                }
+                            }, 
+                            name: 'Occ(%)/Speed', 
+                            min: 0, 
+                            max: 100
+                        },
+                        {
+                            gridIndex: 3, 
+                            type: 'value', 
+                            splitLine: {
+                                show: false
+                            },
+                            axisLine: {
+                                lineStyle: {
+                                    color: 'rgba(220, 220, 220, 0.5)'
+                                }
+                            },
+                            axisLabel: {
+                                textStyle: {
+                                    color: 'rgba(220, 220, 220, 0.7)'
+                                }
+                            }, 
+                            name: 'Flow', 
+                            min: 0, 
+                            max: 1800
+                        }                    
+                    ],
+                    series: [
+                     // 东图: occ, flow, speed
+                        {
+                            name: 'Occ',
+                            type: 'bar',
+                            itemStyle: {
+                                normal: {
+                                    color: 'rgba(178, 34, 34, 0.6)'    
+                                }
+                            },
+                            xAxisIndex: [0],
+                            yAxisIndex: [0],
+                            data: occ0[0]
+                        },
+                        {
+                            name: 'Flow',
+                            type: 'line',
+                            itemStyle: {
+                                normal: {
+                                    color: 'rgba(0, 102 , 0, 0.6)'    
+                                }
+                            },
+                            xAxisIndex: [0],
+                            yAxisIndex: [1],
+                            data: flow0[0]
+                        },
+                        {
+                            name: 'Speed',
+                            type: 'line',
+                            smooth: true,
+                            itemStyle: {
+                                normal: {
+                                    color: 'rgba(0, 51, 153, 0.6)'   
+                                }
+                            },
+                            xAxisIndex: [0],
+                            yAxisIndex: [0],
+                            data: speed0[0]
+                        },
+                    // 南图: occ, flow, speed
+                        {
+                            name: 'Occ',
+                            type: 'bar',
+                            itemStyle: {
+                                normal: {
+                                    color: 'rgba(178, 34, 34, 0.6)'    
+                                }
+                            },
+                            xAxisIndex: [1],
+                            yAxisIndex: [2],
+                            data: occ0[1]
+                        },
+                        {
+                            name: 'Flow',
+                            type: 'line',
+                            itemStyle: {
+                                normal: {
+                                    color: 'rgba(0, 102 , 0, 0.6)'    
+                                }
+                            },
+                            xAxisIndex: [1],
+                            yAxisIndex: [3],
+                            data: flow0[1]
+                        },
+                        {
+                            name: 'Speed',
+                            type: 'line',
+                            itemStyle: {
+                                normal: {
+                                    color: 'rgba(0, 51, 153, 0.6)'    
+                                }
+                            },
+                            xAxisIndex: [1],
+                            yAxisIndex: [2],
+                            data: speed0[1]
+                        },
+                    // 西图: occ, flow, speed
+                        {
+                            name: 'Occ',
+                            type: 'bar',
+                            itemStyle: {
+                                normal: {
+                                    color: 'rgba(178, 34, 34, 0.6)'    
+                                }
+                            },
+                            xAxisIndex: [2],
+                            yAxisIndex: [4],
+                            data: occ0[2]
+                        },
+                        {
+                            name: 'Flow',
+                            type: 'line',
+                            itemStyle: {
+                                normal: {
+                                    color: 'rgba(0, 102 , 0, 0.6)'    
+                                }
+                            },
+                            xAxisIndex: [2],
+                            yAxisIndex: [5],
+                            data: flow0[2]
+                        },
+                        {
+                            name: 'Speed',
+                            type: 'line',
+                            itemStyle: {
+                                normal: {
+                                    color: 'rgba(0, 51, 153, 0.6)'    
+                                }
+                            },
+                            xAxisIndex: [2],
+                            yAxisIndex: [4],
+                            data: speed0[2]
+                        },
+                    // 北图: occ, flow, speed
+                        {
+                            name: 'Occ',
+                            type: 'bar',
+                            itemStyle: {
+                                normal: {
+                                    color: 'rgba(178, 34, 34, 0.6)'    
+                                }
+                            },
+                            xAxisIndex: [3],
+                            yAxisIndex: [6],
+                            data: occ0[3]
+                        },
+                        {
+                            name: 'Flow',
+                            type: 'line',
+                            itemStyle: {
+                                normal: {
+                                    color: 'rgba(0, 102 , 0, 0.6)'    
+                                }
+                            },
+                            xAxisIndex: [3],
+                            yAxisIndex: [7],
+                            data: flow0[3]
+                        },
+                        {
+                            name: 'Speed',
+                            type: 'line',
+                            itemStyle: {
+                                normal: {
+                                    color: 'rgba(0, 51, 153, 0.6)'    
+                                }
+                            },
+                            xAxisIndex: [3],
+                            yAxisIndex: [6],
+                            data: speed0[3]
+                        }   
+                    ],
+                };
+
+                // 更新数据
+                clearInterval(app.timeTicket);
+
+                var Index = 0;
+                app.timeTicket = setInterval(function () { // 间隔一定的时间更新一次
+                    // 更新X坐标 --- time
+                    option.xAxis[0].data.shift(); // 东图
+                    option.xAxis[0].data.push(time1[0][Index].replace(' ', '\n')); 
+                    option.xAxis[1].data.shift(); // 南图
+                    option.xAxis[1].data.push(time1[1][Index].replace(' ', '\n')); 
+                    option.xAxis[2].data.shift(); // 西图
+                    option.xAxis[2].data.push(time1[2][Index].replace(' ', '\n'));
+                    option.xAxis[3].data.shift(); // 北图
+                    option.xAxis[3].data.push(time1[3][Index].replace(' ', '\n')); 
+                    
+                    // 更新Y坐标 --- occ, flow, speed
+                    /* 东图 */
+                    option.series[0].data.shift();
+                    option.series[0].data.push(occ1[0][Index]); // 东occ1[0]
+                    option.series[1].data.shift(); 
+                    option.series[1].data.push(flow1[0][Index]); // 东flow1[0]
+                    option.series[2].data.shift(); 
+                    option.series[2].data.push(speed1[0][Index]); // 东speed1[0]
+                    /* 南图 */
+                    option.series[3].data.shift();
+                    option.series[3].data.push(occ1[1][Index]); // 南occ1[1]
+                    option.series[4].data.shift();
+                    option.series[4].data.push(flow1[1][Index]); // 南flow1[1]
+                    option.series[5].data.shift();
+                    option.series[5].data.push(speed1[1][Index]); // 南speed1[1]
+                    /* 西图 */
+                    option.series[6].data.shift();
+                    option.series[6].data.push(occ1[2][Index]); // 西occ1[2]
+                    option.series[7].data.shift();
+                    option.series[7].data.push(flow1[2][Index]); // 西flow1[2]
+                    option.series[8].data.shift();
+                    option.series[8].data.push(speed1[2][Index]); // 西speed1[2]
+                    /* 北图 */
+                    option.series[9].data.shift();
+                    option.series[9].data.push(occ1[3][Index]); // 北occ1[3]
+                    option.series[10].data.shift();
+                    option.series[10].data.push(flow1[3][Index]); // 北flow1[3]
+                    option.series[11].data.shift();
+                    option.series[11].data.push(speed1[3][Index]); // 北speed1[3]
+
+                    Index++;
+
+                    myChart.setOption(option);
+                }, 900);
+
+                // setOption
+                if (option && typeof option == "object") { // typeof用于判断option的数据类型
+                    var startTime = +new Date();
+                    myChart.setOption(option, true);
+                    var endTime = +new Date();
+                    var updateTime = endTime - startTime;
+                    console.log("Time used:", updateTime);
+                }
+            };
+
+            // 异步加载数据
+            $.getJSON("湖光北街西口 东南西北 occ_flow_speed.json",function(data) { 
+                
+                // 给全局变量赋值：初始值 ***0
+                for ( var m = 0; m < 36; m ++ )
+                {
+                    /* 东图 */
+                    time0[0].push( data[0].time[m] );
+                    occ0[0].push( data[0].occ[m] );
+                    flow0[0].push( data[0].flow[m] );
+                    speed0[0].push( data[0].speed[m] );
+                    /* 南图 */
+                    time0[1].push( data[1].time[m] );
+                    occ0[1].push( data[1].occ[m] );
+                    flow0[1].push( data[1].flow[m] );
+                    speed0[1].push( data[1].speed[m] );
+                    /* 西图 */
+                    time0[2].push( data[2].time[m] );
+                    occ0[2].push( data[2].occ[m] );
+                    flow0[2].push( data[2].flow[m] );
+                    speed0[2].push( data[2].speed[m] );
+                    /* 北图 */
+                    time0[3].push( data[3].time[m] );
+                    occ0[3].push( data[3].occ[m] );
+                    flow0[3].push( data[3].flow[m] );
+                    speed0[3].push( data[3].speed[m] );
+                }
+
+                // 给全局变量赋值：更新值 ***1
+                for ( var n0 = 36; n0 < 1212; n0 ++ )
+                { // 东图
+                    time1[0].push( data[0].time[n0] );
+                    occ1[0].push( data[0].occ[n0] );
+                    flow1[0].push( data[0].flow[n0] );
+                    speed1[0].push( data[0].speed[n0] );
+                }
+                for ( var n1 = 36; n1 < 1175; n1 ++ )
+                { // 南图
+                    time1[1].push( data[1].time[n1] );
+                    occ1[1].push( data[1].occ[n1] );
+                    flow1[1].push( data[1].flow[n1] );
+                    speed1[1].push( data[1].speed[n1] );
+                }
+                for ( var n2 = 36; n2 < 1159; n2 ++ )
+                { // 西图
+                    time1[2].push( data[2].time[n2] );
+                    occ1[2].push( data[2].occ[n2] );
+                    flow1[2].push( data[2].flow[n2] );
+                    speed1[2].push( data[2].speed[n2] );
+                }
+                for ( var n3 = 36; n3 < 1269; n3 ++ )
+                { // 北图
+                    time1[3].push( data[3].time[n3] );
+                    occ1[3].push( data[3].occ[n3] );
+                    flow1[3].push( data[3].flow[n3] );
+                    speed1[3].push( data[3].speed[n3] );
+                }
+
+                // 初始化坐标并且更新数据
+                init_and_update();
+            });
+        </script>
+    </body>
+</html>
